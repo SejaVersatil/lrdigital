@@ -11,9 +11,10 @@ interface HeaderProps {
   onOpenContactModal: () => void;
   onToggleTheme: () => void;
   isDarkMode: boolean;
+  canToggleTheme?: boolean;
 }
 
-export default function Header({ onOpenContactModal, onToggleTheme, isDarkMode }: HeaderProps) {
+export default function Header({ onOpenContactModal, onToggleTheme, isDarkMode, canToggleTheme = true }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const scrollToSection = (id: string) => {
@@ -105,19 +106,21 @@ export default function Header({ onOpenContactModal, onToggleTheme, isDarkMode }
               <div className="absolute inset-0 bg-gradient-to-r from-brand-bright to-[#D8B4FE] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             </button>
 
-            <button
-              type="button"
-              onClick={onToggleTheme}
-              className={`flex h-8 w-8 items-center justify-center rounded-full border transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-purple/50 ${
-                isDarkMode
-                  ? "border-white/10 bg-white/[0.04] text-[#D8B4FE] hover:bg-white/[0.08] hover:text-white"
-                  : "border-black/10 bg-slate-100 text-brand-purple hover:bg-white hover:text-slate-950 shadow-sm"
-              }`}
-              aria-label={isDarkMode ? "Ativar modo claro" : "Ativar modo escuro"}
-              title={isDarkMode ? "Ativar modo claro" : "Ativar modo escuro"}
-            >
-              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </button>
+            {canToggleTheme && (
+              <button
+                type="button"
+                onClick={onToggleTheme}
+                className={`flex h-8 w-8 items-center justify-center rounded-full border transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-purple/50 ${
+                  isDarkMode
+                    ? "border-white/10 bg-white/[0.04] text-[#D8B4FE] hover:bg-white/[0.08] hover:text-white"
+                    : "border-black/10 bg-slate-100 text-brand-purple hover:bg-white hover:text-slate-950 shadow-sm"
+                }`}
+                aria-label={isDarkMode ? "Ativar modo claro" : "Ativar modo escuro"}
+                title={isDarkMode ? "Ativar modo claro" : "Ativar modo escuro"}
+              >
+                {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              </button>
+            )}
 
             <button
               onClick={() => setIsOpen(!isOpen)}

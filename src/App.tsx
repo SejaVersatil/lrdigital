@@ -16,7 +16,11 @@ import FAQSection from "./components/FAQSection";
 import FinalCTA from "./components/FinalCTA";
 import ContactModal from "./components/ContactModal";
 
+const LIGHT_MODE_ENABLED = false;
+
 function getInitialThemeIsDark() {
+  if (!LIGHT_MODE_ENABLED) return true;
+
   try {
     const savedTheme = window.localStorage.getItem("lr-digital-theme");
     if (savedTheme === "dark") return true;
@@ -34,12 +38,26 @@ export default function App() {
   const [selectedTier, setSelectedTier] = useState("Comercial Inteligente");
 
   useEffect(() => {
+    if (!LIGHT_MODE_ENABLED && !isDarkMode) {
+      setIsDarkMode(true);
+      return;
+    }
+
     try {
       window.localStorage.setItem("lr-digital-theme", isDarkMode ? "dark" : "light");
     } catch {
       // Theme still works in memory when persistence is unavailable.
     }
   }, [isDarkMode]);
+
+  const handleToggleTheme = () => {
+    if (!LIGHT_MODE_ENABLED) {
+      setIsDarkMode(true);
+      return;
+    }
+
+    setIsDarkMode((current) => !current);
+  };
 
   const handleOpenModal = (tierName: string = "Comercial Inteligente") => {
     setSelectedTier(tierName);
@@ -72,8 +90,9 @@ export default function App() {
       {/* Floating Header Navbar */}
       <Header 
         onOpenContactModal={() => handleOpenModal()} 
-        onToggleTheme={() => setIsDarkMode((current) => !current)}
+        onToggleTheme={handleToggleTheme}
         isDarkMode={isDarkMode}
+        canToggleTheme={LIGHT_MODE_ENABLED}
       />
 
       {/* Main Page Layout Sections */}

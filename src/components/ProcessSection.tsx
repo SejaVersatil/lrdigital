@@ -15,7 +15,7 @@ export default function ProcessSection({ isDarkMode }: ProcessSectionProps) {
     <section id="process" className={`relative py-32 overflow-hidden px-4 border-t transition-colors duration-500 ${
       isDarkMode 
         ? "border-white/[0.04] bg-[#030304]" 
-        : "border-black/[0.04] bg-[#FAF9F5]"
+        : "border-black/[0.04] bg-[#F7F8FC]"
     }`}>
       <div className={`absolute inset-0 pointer-events-none opacity-[0.12] transition-colors duration-500 ${isDarkMode ? "noise-overlay" : "noise-overlay-light"}`} />
       

@@ -232,7 +232,7 @@ export default function AutomationDemoSection({ isDarkMode, onOpenContactModal }
     <section
       id="demo"
       className={`relative overflow-hidden border-t px-4 py-28 md:py-32 transition-colors duration-500 ${
-        isDarkMode ? "border-white/[0.04] bg-[#030304]" : "border-black/[0.04] bg-[#FAF9F5]"
+        isDarkMode ? "border-white/[0.04] bg-[#030304]" : "border-black/[0.04] bg-[#F7F8FC]"
       }`}
     >
       <div className={`absolute inset-0 pointer-events-none opacity-[0.12] ${isDarkMode ? "noise-overlay" : "noise-overlay-light"}`} />

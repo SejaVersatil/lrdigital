@@ -4,15 +4,16 @@
  */
 
 import { useState } from "react";
-import { Menu, X, ArrowUpRight, Cpu } from "lucide-react";
+import { Menu, X, ArrowUpRight, Cpu, Moon, Sun } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
 interface HeaderProps {
   onOpenContactModal: () => void;
+  onToggleTheme: () => void;
   isDarkMode: boolean;
 }
 
-export default function Header({ onOpenContactModal, isDarkMode }: HeaderProps) {
+export default function Header({ onOpenContactModal, onToggleTheme, isDarkMode }: HeaderProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const scrollToSection = (id: string) => {
@@ -102,6 +103,20 @@ export default function Header({ onOpenContactModal, isDarkMode }: HeaderProps) 
               <span className="relative z-10">Solicitar análise</span>
               <ArrowUpRight className="w-3 h-3 relative z-10 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               <div className="absolute inset-0 bg-gradient-to-r from-brand-bright to-[#D8B4FE] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </button>
+
+            <button
+              type="button"
+              onClick={onToggleTheme}
+              className={`flex h-8 w-8 items-center justify-center rounded-full border transition-all active:scale-95 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-purple/50 ${
+                isDarkMode
+                  ? "border-white/10 bg-white/[0.04] text-[#D8B4FE] hover:bg-white/[0.08] hover:text-white"
+                  : "border-black/10 bg-slate-100 text-brand-purple hover:bg-white hover:text-slate-950 shadow-sm"
+              }`}
+              aria-label={isDarkMode ? "Ativar modo claro" : "Ativar modo escuro"}
+              title={isDarkMode ? "Ativar modo claro" : "Ativar modo escuro"}
+            >
+              {isDarkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </button>
 
             <button

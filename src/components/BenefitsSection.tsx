@@ -47,7 +47,7 @@ export default function BenefitsSection({ onOpenContactModal, isDarkMode }: Bene
     <section id="benefits" className={`relative py-32 overflow-hidden px-4 border-t transition-colors duration-500 ${
       isDarkMode 
         ? "border-white/[0.04] bg-[#030304]" 
-        : "border-black/[0.04] bg-[#FAF9F5]"
+        : "border-black/[0.04] bg-[#F7F8FC]"
     }`}>
       {/* Decorative starry visual or noise background */}
       <div className={`absolute inset-0 pointer-events-none opacity-[0.12] ${isDarkMode ? "noise-overlay" : "noise-overlay-light"}`} />

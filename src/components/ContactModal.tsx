@@ -315,7 +315,7 @@ export default function ContactModal({ isOpen, onClose, selectedTier = "Comercia
                   Solicitação recebida com sucesso!
                 </h3>
                 
-                <p className={`text-xs max-w-md leading-relaxed mb-6 ${isDarkMode ? "text-[#C4C4CC]" : "text-slate-650"}`}>
+                <p className={`text-xs max-w-md leading-relaxed mb-6 ${isDarkMode ? "text-[#C4C4CC]" : "text-slate-600"}`}>
                   Olá <strong>{formData.nome.split(' ')[0]}</strong>, o mapeamento inicial dos seus canais de leads e barreira de CRM para a empresa <strong>{formData.empresa}</strong> foi encaminhado ao nosso time comercial.
                 </p>
 
@@ -345,7 +345,7 @@ export default function ContactModal({ isOpen, onClose, selectedTier = "Comercia
                   </p>
                 </div>
 
-                <p className={`text-xs max-w-sm mb-8 leading-relaxed ${isDarkMode ? "text-[#A1A1AA]" : "text-slate-505"}`}>
+                <p className={`text-xs max-w-sm mb-8 leading-relaxed ${isDarkMode ? "text-[#A1A1AA]" : "text-slate-500"}`}>
                   Nossos especialistas farão uma <strong>análise inicial</strong> cuidadosa do seu cenário operacional e entrarão em contato via WhatsApp no número <strong>{formData.telefone}</strong> para apresentar sugestões pré-desenhadas de arquitetura e agendar o seu diagnóstico comercial completo.
                 </p>
 

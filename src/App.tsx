@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import OverviewSection from "./components/OverviewSection";
@@ -16,10 +16,30 @@ import FAQSection from "./components/FAQSection";
 import FinalCTA from "./components/FinalCTA";
 import ContactModal from "./components/ContactModal";
 
+function getInitialThemeIsDark() {
+  try {
+    const savedTheme = window.localStorage.getItem("lr-digital-theme");
+    if (savedTheme === "dark") return true;
+    if (savedTheme === "light") return false;
+  } catch {
+    return false;
+  }
+
+  return false;
+}
+
 export default function App() {
-  const isDarkMode = true;
+  const [isDarkMode, setIsDarkMode] = useState(getInitialThemeIsDark);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTier, setSelectedTier] = useState("Comercial Inteligente");
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem("lr-digital-theme", isDarkMode ? "dark" : "light");
+    } catch {
+      // Theme still works in memory when persistence is unavailable.
+    }
+  }, [isDarkMode]);
 
   const handleOpenModal = (tierName: string = "Comercial Inteligente") => {
     setSelectedTier(tierName);
@@ -42,16 +62,17 @@ export default function App() {
 
   return (
     <div className={`min-h-screen font-sans selection:bg-brand-purple selection:text-white overflow-x-hidden antialiased transition-colors duration-500 ${
-      isDarkMode ? "bg-[#030305] text-[#F8FAFC]" : "bg-[#FAF9F5] text-slate-800"
+      isDarkMode ? "bg-[#030305] text-[#F8FAFC]" : "bg-[#F7F8FC] text-slate-800"
     }`}>
       {/* Translucent premium background grid lines overlay */}
       <div className={`fixed inset-0 z-0 pointer-events-none opacity-[0.2] transition-colors duration-500 ${
-        isDarkMode ? "noise-overlay bg-[#030305]" : "noise-overlay-light bg-[#FAF9F5]"
+        isDarkMode ? "noise-overlay bg-[#030305]" : "noise-overlay-light bg-[#F7F8FC]"
       }`} />
       
       {/* Floating Header Navbar */}
       <Header 
         onOpenContactModal={() => handleOpenModal()} 
+        onToggleTheme={() => setIsDarkMode((current) => !current)}
         isDarkMode={isDarkMode}
       />
 

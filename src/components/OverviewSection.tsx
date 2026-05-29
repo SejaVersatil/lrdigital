@@ -41,7 +41,7 @@ export default function OverviewSection({ onOpenContactModal, isDarkMode }: Over
     <section id="solutions" className={`relative py-32 overflow-hidden px-4 border-t transition-colors duration-500 ${
       isDarkMode 
         ? "border-white/[0.04] bg-[#030304]" 
-        : "border-black/[0.04] bg-[#F1EFE9]"
+        : "border-black/[0.04] bg-[#EEF3F8]"
     }`}>
       {/* Absolute background effects */}
       <div className={`absolute inset-0 pointer-events-none opacity-[0.12] transition-colors duration-500 ${isDarkMode ? "noise-overlay" : "noise-overlay-light"}`} />
@@ -80,7 +80,7 @@ export default function OverviewSection({ onOpenContactModal, isDarkMode }: Over
               className={`group relative flex flex-col justify-between p-8 rounded-3xl border transition-all duration-300 overflow-hidden shadow-xl ${
                 isDarkMode 
                   ? "border-white/[0.05] bg-[#08080C] hover:border-brand-purple/30 hover:bg-[#0D0B12]" 
-                  : "border-black/[0.06] bg-white hover:border-brand-purple/20 hover:shadow-2xl hover:bg-[#FAF9F5]"
+                  : "border-black/[0.06] bg-white hover:border-brand-purple/20 hover:shadow-2xl hover:bg-[#F7F8FC]"
               }`}
             >
               {/* Subtle top indicator border */}

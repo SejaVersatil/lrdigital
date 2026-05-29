@@ -103,7 +103,7 @@ export default function HeroSection({ onOpenContactModal, onScrollToDemo, isDark
   // We align with the dark-only premium theme requested
   return (
     <section id="hero" className={`relative min-h-[820px] pt-40 pb-24 overflow-hidden flex flex-col justify-center items-center px-4 transition-colors duration-500 ${
-      isDarkMode ? "bg-[#030304]" : "bg-[#FAF9F5]"
+      isDarkMode ? "bg-[#030304]" : "bg-[#F7F8FC]"
     }`}>
       {/* Visual reference direction: deep dark space with subtle noise / starfield */}
       <div className={`absolute inset-0 z-0 pointer-events-none opacity-[0.16] transition-colors duration-500 ${isDarkMode ? "noise-overlay" : "noise-overlay-light"}`} />

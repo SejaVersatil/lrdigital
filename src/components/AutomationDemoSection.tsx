@@ -3,510 +3,741 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from "react";
-import { 
-  Play, 
-  RotateCcw, 
-  MessageSquare, 
-  BrainCircuit, 
-  Database, 
-  Bell, 
-  Bot,
-  Clock,
-  Briefcase
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  ArrowRight,
+  BarChart3,
+  Bell,
+  Brain,
+  CheckCircle2,
+  Database,
+  FileText,
+  MessageSquare,
+  MousePointer2,
+  Play,
+  RotateCcw,
+  Send,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Users,
+  Zap
 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 
-interface StepDetail {
-  id: number;
+type ScenarioKey = "whatsapp" | "ads" | "lp" | "instagram" | "site";
+
+interface LeadData {
+  nome: string;
+  canal: string;
+  msg: string;
+}
+
+interface AIAnalysis {
+  qualidade: string;
+  prioridade: string;
+  intencao: string;
+  acao: string;
+  resumo: string;
+}
+
+interface Scenario {
   label: string;
   icon: React.ReactNode;
-  title: string;
-  desc: string;
+  lead: LeadData;
+  ai: AIAnalysis;
+  reply: string;
+  internal: string;
 }
 
 interface AutomationDemoSectionProps {
   isDarkMode: boolean;
+  onOpenContactModal?: () => void;
 }
 
-export default function AutomationDemoSection({ isDarkMode }: AutomationDemoSectionProps) {
-  const [activeStep, setActiveStep] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [typingText, setTypingText] = useState("");
-  const fullMessage = "Olá, Mariana! Obrigado pelo contato. Posso te ajudar com as opções disponíveis para essa semana. Você prefere atendimento pela manhã ou à tarde?";
+const SCENARIOS: Record<ScenarioKey, Scenario> = {
+  whatsapp: {
+    label: "WhatsApp",
+    icon: <MessageSquare className="w-4 h-4" />,
+    lead: {
+      nome: "Mariana Costa",
+      canal: "WhatsApp Business",
+      msg: "Olá, gostaria de saber valores e disponibilidade para essa semana."
+    },
+    ai: {
+      qualidade: "Lead quente",
+      prioridade: "Alta",
+      intencao: "Orçamento",
+      acao: "Agendamento imediato",
+      resumo: "Cliente demonstra interesse direto e urgência por disponibilidade."
+    },
+    reply: "Olá, Mariana! Recebemos seu contato. Para agilizar, você prefere atendimento pela manhã ou à tarde?",
+    internal: "Prioridade alta: responder com opções de horários. Lead pronto para conversão."
+  },
+  ads: {
+    label: "Anúncio",
+    icon: <TrendingUp className="w-4 h-4" />,
+    lead: {
+      nome: "Rafael Martins",
+      canal: "Campanha Meta Ads",
+      msg: "Vi o anúncio e queria saber se conseguem automatizar meu comercial."
+    },
+    ai: {
+      qualidade: "Lead qualificado",
+      prioridade: "Alta",
+      intencao: "Automação",
+      acao: "Consultoria técnica",
+      resumo: "Lead vindo de tráfego pago com dor específica em escala de atendimento."
+    },
+    reply: "Olá, Rafael! Consigo te mostrar como a IA pode organizar seus leads. Hoje seu volume é maior por WhatsApp ou site?",
+    internal: "Lead de anúncio. Priorizar diagnóstico dos canais atuais de captação."
+  },
+  lp: {
+    label: "Landing Page",
+    icon: <FileText className="w-4 h-4" />,
+    lead: {
+      nome: "Camila Rocha",
+      canal: "Landing Page B2B",
+      msg: "Quero uma análise para entender onde aplicar IA na minha empresa."
+    },
+    ai: {
+      qualidade: "Lead estratégico",
+      prioridade: "Alta",
+      intencao: "Diagnóstico",
+      acao: "Agendar call",
+      resumo: "Perfil tomador de decisão solicitando análise estratégica de processos."
+    },
+    reply: "Olá, Camila! Para preparar uma análise útil, qual sua maior dificuldade hoje: captação ou follow-up?",
+    internal: "Lead estratégico pediu diagnóstico. Recomendar conversa consultiva com especialista."
+  },
+  instagram: {
+    label: "Instagram",
+    icon: <Users className="w-4 h-4" />,
+    lead: {
+      nome: "Lucas Silva",
+      canal: "Instagram DM",
+      msg: "Oi, queria entender melhor como funciona o serviço."
+    },
+    ai: {
+      qualidade: "Lead em descoberta",
+      prioridade: "Média",
+      intencao: "Informação",
+      acao: "Nutrição",
+      resumo: "Lead buscando entender escopo e metodologia da solução."
+    },
+    reply: "Oi, Lucas! Que bom seu interesse. Vou te enviar um breve resumo de como ajudamos empresas a escalar...",
+    internal: "Prioridade média: enviar material de apoio e agendar follow-up em 48h."
+  },
+  site: {
+    label: "Site",
+    icon: <MousePointer2 className="w-4 h-4" />,
+    lead: {
+      nome: "Anônimo",
+      canal: "Formulário Site",
+      msg: "Tenho interesse."
+    },
+    ai: {
+      qualidade: "Lead incompleto",
+      prioridade: "Baixa",
+      intencao: "Indefinida",
+      acao: "Qualificação",
+      resumo: "Dados insuficientes. Necessário triagem automática antes do comercial."
+    },
+    reply: "Olá! Recebemos seu interesse. Para que eu te direcione ao consultor certo, qual o tamanho da sua equipe?",
+    internal: "Aguardando enriquecimento de dados via automação. Não acionar comercial ainda."
+  }
+};
 
-  useEffect(() => {
-    let timer: ReturnType<typeof setInterval>;
-    if (isPlaying) {
-      timer = setInterval(() => {
-        setActiveStep((prev) => {
-          if (prev >= 5) {
-            setIsPlaying(false);
-            return 5;
-          }
-          return prev + 1;
-        });
-      }, 3500); // 3.5 seconds per step
+const FLOW_STEPS = [
+  "Captação",
+  "Dados",
+  "IA",
+  "CRM",
+  "Resposta",
+  "Alerta"
+];
+
+export default function AutomationDemoSection({ isDarkMode, onOpenContactModal }: AutomationDemoSectionProps) {
+  const [activeScenario, setActiveScenario] = useState<ScenarioKey>("whatsapp");
+  const [step, setStep] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
+  const [aiRevealed, setAiRevealed] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const scenario = SCENARIOS[activeScenario];
+  const totalSteps = FLOW_STEPS.length;
+
+  const clearAllTimers = useCallback(() => {
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
     }
-    return () => clearInterval(timer);
-  }, [isPlaying]);
+    timerRef.current = null;
+  }, []);
 
-  // Handle typing effect for the generated message when step 4 is active
+  const resetDemo = useCallback(() => {
+    clearAllTimers();
+    setStep(0);
+    setIsAnimating(false);
+    setAiRevealed(false);
+  }, [clearAllTimers]);
+
+  const handleScenarioChange = (key: ScenarioKey) => {
+    resetDemo();
+    setActiveScenario(key);
+  };
+
+  const startDemo = () => {
+    resetDemo();
+    setStep(1);
+    setIsAnimating(true);
+  };
+
+  const handleOpenAnalysis = () => {
+    if (onOpenContactModal) {
+      onOpenContactModal();
+      return;
+    }
+
+    document.getElementById("final-cta")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleScrollToProjects = () => {
+    document.getElementById("project-models")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   useEffect(() => {
-    let index = 0;
-    if (activeStep >= 4) {
-      setTypingText("");
-      const typeTimer = setInterval(() => {
-        if (index < fullMessage.length) {
-          setTypingText((prev) => prev + fullMessage.charAt(index));
-          index++;
-        } else {
-          clearInterval(typeTimer);
-        }
-      }, 20);
-      return () => clearInterval(typeTimer);
+    if (!isAnimating || step <= 0) {
+      return;
+    }
+
+    if (step < totalSteps) {
+      if (step === 3) {
+        setAiRevealed(false);
+        timerRef.current = setTimeout(() => {
+          setAiRevealed(true);
+          timerRef.current = setTimeout(() => setStep((current) => current + 1), 1900);
+        }, 1500);
+      } else {
+        const delay = step === 5 ? 2800 : 1700;
+        timerRef.current = setTimeout(() => setStep((current) => current + 1), delay);
+      }
     } else {
-      setTypingText("");
+      setIsAnimating(false);
     }
-  }, [activeStep]);
 
-  const handleStart = () => {
-    if (activeStep === 5) {
-      setActiveStep(0);
-    }
-    setIsPlaying(true);
-  };
-
-  const handleReset = () => {
-    setIsPlaying(false);
-    setActiveStep(0);
-    setTypingText("");
-  };
-
-  const getSimulationStatus = () => {
-    if (isPlaying) return "Simulação ativa";
-    if (activeStep === 5) return "Fluxo concluído";
-    if (activeStep === 0) return "Simulação pronta";
-    return "Simulação ativa";
-  };
-
-  const steps: StepDetail[] = [
-    {
-      id: 0,
-      label: "Entrada",
-      icon: <MessageSquare className="w-3.5 h-3.5" />,
-      title: "Lead recebido",
-      desc: "Mensagem unificada vinda do WhatsApp comercial."
-    },
-    {
-      id: 1,
-      label: "Extração",
-      icon: <Database className="w-3.5 h-3.5" />,
-      title: "Dados organizados",
-      desc: "Os dados de contato do lead são organizados rapidamente."
-    },
-    {
-      id: 2,
-      label: "Qualificação",
-      icon: <BrainCircuit className="w-3.5 h-3.5" />,
-      title: "IA qualifica",
-      desc: "A inteligência interpreta o nível de maturidade e urgência comercial."
-    },
-    {
-      id: 3,
-      label: "Sincronia",
-      icon: <Briefcase className="w-3.5 h-3.5" />,
-      title: "CRM atualizado",
-      desc: "Negócio criado na coluna identificada do CRM de forma automática."
-    },
-    {
-      id: 4,
-      label: "Resposta",
-      icon: <Bot className="w-3.5 h-3.5" />,
-      title: "Resposta enviada",
-      desc: "Primeiro contato de acompanhamento enviado à cliente."
-    },
-    {
-      id: 5,
-      label: "Alerta",
-      icon: <Bell className="w-3.5 h-3.5" />,
-      title: "Time acionado",
-      desc: "Notificação urgente com resumo completo enviado ao time humano."
-    }
-  ];
+    return () => clearAllTimers();
+  }, [clearAllTimers, isAnimating, step, totalSteps]);
 
   return (
-    <section id="demo" className={`relative py-32 overflow-hidden px-4 border-t transition-colors duration-500 ${
-      isDarkMode 
-        ? "border-white/[0.04] bg-[#030304]" 
-        : "border-black/[0.04] bg-[#FAF9F5]"
-    }`}>
+    <section
+      id="demo"
+      className={`relative overflow-hidden border-t px-4 py-28 md:py-32 transition-colors duration-500 ${
+        isDarkMode ? "border-white/[0.04] bg-[#030304]" : "border-black/[0.04] bg-[#FAF9F5]"
+      }`}
+    >
       <div className={`absolute inset-0 pointer-events-none opacity-[0.12] ${isDarkMode ? "noise-overlay" : "noise-overlay-light"}`} />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-brand-purple/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-purple/30 to-transparent" />
+      <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_50%_18%,rgba(124,58,237,0.10),transparent_42%)]" />
 
-      <div className="relative z-10 max-w-[1120px] mx-auto">
-        
-        {/* Title Block */}
-        <div className="text-center max-w-[700px] mx-auto mb-20">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-mono font-semibold uppercase tracking-widest text-[#BA9DFE] bg-brand-purple/10 border border-brand-purple/15 mb-5">
-            Demonstração
-          </div>
-          
-          <h2 className={`font-display font-bold text-3xl sm:text-4xl md:text-[44px] tracking-tight leading-none mb-6 transition-colors duration-500 ${
-            isDarkMode ? "text-white" : "text-[#131122]"
-          }`}>
-            Fluxo de automação simulado em tempo real.
+      <div className="relative z-10 mx-auto max-w-[1180px]">
+        <div className="mx-auto mb-14 max-w-[740px] text-center md:mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-80px" }}
+            className="mb-5 inline-flex items-center gap-2 rounded-full border border-brand-purple/15 bg-brand-purple/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-[#BA9DFE]"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+            Demonstração interativa
+          </motion.div>
+
+          <h2
+            className={`font-display text-3xl font-extrabold leading-[1.05] tracking-tight sm:text-4xl md:text-[48px] ${
+              isDarkMode ? "text-white" : "text-[#131122]"
+            }`}
+          >
+            Veja a IA organizando um lead do primeiro contato ao handoff.
           </h2>
-          
-          <p className={`text-sm md:text-[15px] leading-relaxed max-w-[585px] mx-auto transition-colors duration-500 ${
-            isDarkMode ? "text-[#A1A1AA]" : "text-[#555566]"
-          }`}>
-            Abaixo, veja a simulação do trajeto completo de um lead, do primeiro contato ao handoff comercial estruturado.
+
+          <p
+            className={`mx-auto mt-6 max-w-[650px] text-sm leading-relaxed md:text-[15px] ${
+              isDarkMode ? "text-[#A1A1AA]" : "text-[#555566]"
+            }`}
+          >
+            Escolha um canal de entrada e acompanhe como a automação coleta dados, interpreta intenção,
+            atualiza o CRM, responde o lead e aciona o time comercial.
           </p>
         </div>
 
-        {/* Demo Stage */}
-        <div className="max-w-4xl mx-auto">
-          
-          {/* Timeline Nodes Navigation */}
-          <div className={`p-4 border rounded-2xl mb-6 overflow-x-auto transition-colors duration-500 ${
-            isDarkMode ? "border-white/[0.05] bg-[#08080C]/80" : "border-black/[0.05] bg-white shadow-sm"
-          }`}>
-            <div className="flex items-center justify-between min-w-[650px] px-2">
-              {steps.map((st, idx) => {
-                const isSelected = activeStep >= idx;
-                const isCurrent = activeStep === idx;
-                
-                return (
-                  <div 
-                    key={st.id} 
-                    className="flex items-center flex-1 last:flex-initial"
-                  >
-                    <button
-                      onClick={() => {
-                        setActiveStep(idx);
-                        setIsPlaying(false);
-                      }}
-                      className="flex flex-col items-center gap-2 cursor-pointer outline-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-purple/50 rounded-full group animate-none"
-                    >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center border transition-all ${
-                        isCurrent 
-                          ? "bg-brand-purple text-white border-brand-bright shadow-[0_0_15px_rgba(124,58,237,0.3)] scale-105" 
-                          : isSelected 
-                          ? "bg-brand-purple/20 text-brand-purple border-brand-purple/50" 
-                          : isDarkMode 
-                          ? "bg-[#040406] text-[#71717A] border-white/[0.05] group-hover:border-white/12"
-                          : "bg-slate-100 text-slate-500 border-black/[0.05] group-hover:border-black/12"
-                      }`}>
-                        {st.icon}
-                      </div>
-                      
-                      <div className="text-center">
-                        <span className={`block text-[10px] font-mono font-semibold uppercase ${
-                          isCurrent 
-                            ? "text-brand-purple" 
-                            : isSelected 
-                            ? (isDarkMode ? "text-[#E4E4E7]" : "text-slate-800") 
-                            : (isDarkMode ? "text-[#71717A]" : "text-slate-400")
-                        }`}>
-                          {st.label}
-                        </span>
-                      </div>
-                    </button>
+        <div
+          className={`mb-8 flex flex-col gap-4 rounded-[28px] border p-3 backdrop-blur-xl lg:flex-row lg:items-center lg:justify-between ${
+            isDarkMode ? "border-white/[0.06] bg-white/[0.025]" : "border-black/[0.05] bg-white shadow-sm"
+          }`}
+        >
+          <div className="flex flex-wrap justify-center gap-1.5">
+            {(Object.keys(SCENARIOS) as ScenarioKey[]).map((key) => {
+              const isActive = activeScenario === key;
 
-                    {/* Node connector line */}
-                    {idx < steps.length - 1 && (
-                      <div className={`h-[1px] flex-1 mx-3 relative overflow-hidden ${
-                        isDarkMode ? "bg-white/[0.04]" : "bg-black/[0.04]"
-                      }`}>
-                        {isSelected && (
-                          <div className={`absolute inset-0 bg-brand-purple transition-all duration-1000 ${
-                            isCurrent ? "w-1/2 animate-pulse" : "w-full"
-                          }`} />
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Simulated Screen Dashboard mockup */}
-          <div className={`grid grid-cols-1 lg:grid-cols-12 gap-8 rounded-3xl p-8 relative overflow-hidden min-h-[440px] border transition-all duration-500 ${
-            isDarkMode 
-              ? "shadow-2xl border-white/[0.05] bg-[#08080C]" 
-              : "shadow-xl border-black/[0.05] bg-white text-slate-800"
-          }`}>
-            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-brand-purple/10 via-[#8B5CF6]/30 to-transparent" />
-            
-            {/* Interactive Control Sidebar Panel */}
-            <div className={`lg:col-span-4 flex flex-col justify-between border-b lg:border-b-0 lg:border-r pb-6 lg:pb-0 lg:pr-6 ${
-              isDarkMode ? "border-white/[0.04]" : "border-black/[0.06]"
-            }`}>
-              
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${
-                    isPlaying ? "bg-brand-purple" : activeStep === 5 ? "bg-emerald-500" : "bg-amber-500"
-                  }`} />
-                  <span className={`text-[10px] font-mono tracking-widest uppercase font-semibold ${
-                    isDarkMode ? "text-[#71717A]" : "text-slate-400"
-                  }`}>
-                    {getSimulationStatus()}
-                  </span>
-                </div>
-
-                <h3 className={`font-display font-semibold text-lg ${
-                  isDarkMode ? "text-white" : "text-slate-900"
-                }`}>
-                  {steps[activeStep].title}
-                </h3>
-                
-                <p className={`text-xs leading-relaxed ${
-                  isDarkMode ? "text-[#A1A1AA]" : "text-slate-600"
-                }`}>
-                  {steps[activeStep].desc}
-                </p>
-
-                <div className={`py-2 px-3 border rounded-xl flex items-center gap-1.5 text-[9px] font-mono transition-colors duration-500 ${
-                  isDarkMode 
-                    ? "border-white/[0.04] bg-white/[0.01] text-[#71717A]" 
-                    : "border-black/[0.05] bg-slate-50 text-slate-500"
-                }`}>
-                  <Clock className="w-3.5 h-3.5 text-brand-purple" />
-                  <span>Próxima ação sugerida</span>
-                </div>
-              </div>
-
-              {/* Simulation player control actions */}
-              <div className="flex items-center gap-2 mt-8">
+              return (
                 <button
-                  onClick={handleStart}
-                  className={`flex-1 py-2.5 px-4 rounded-full text-xs font-semibold flex items-center justify-center gap-1.5 transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-purple/50 cursor-pointer ${
-                    isPlaying 
-                      ? isDarkMode 
-                        ? "bg-brand-purple/20 text-[#D8B4FE] border border-brand-purple/30"
-                        : "bg-brand-purple/10 text-brand-purple border border-brand-purple/20"
-                      : "bg-[#7C3AED] text-white hover:bg-[#8B5CF6] shadow-lg shadow-brand-purple/10"
+                  key={key}
+                  type="button"
+                  onClick={() => handleScenarioChange(key)}
+                  className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-purple/60 ${
+                    isActive
+                      ? "bg-brand-purple text-white shadow-[0_0_24px_rgba(124,58,237,0.22)]"
+                      : isDarkMode
+                        ? "text-[#80808a] hover:bg-white/[0.05] hover:text-white"
+                        : "text-slate-500 hover:bg-slate-100 hover:text-slate-900"
                   }`}
                 >
-                  <Play className="w-3.5 h-3.5 animate-none" />
-                  <span>{isPlaying ? "Simulando..." : activeStep === 5 ? "Reiniciar" : "Iniciar passo a passo"}</span>
+                  {SCENARIOS[key].icon}
+                  <span>{SCENARIOS[key].label}</span>
                 </button>
-
-                <button
-                  onClick={handleReset}
-                  className={`p-2.5 rounded-full border transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-purple/50 cursor-pointer ${
-                    isDarkMode 
-                      ? "border-white/8 bg-white/[0.02] hover:bg-white/[0.06] text-[#A1A1AA]" 
-                      : "border-black/10 bg-slate-100 hover:bg-slate-200 text-slate-600"
-                  }`}
-                  aria-label="Reiniciar simulação"
-                  title="Resetar"
-                >
-                  <RotateCcw className="w-3.5 h-3.5 animate-none" />
-                </button>
-              </div>
-
-            </div>
-
-            {/* Interactive Visual Stage panels */}
-            <div className="lg:col-span-8 flex flex-col gap-4 justify-center">
-              
-              {/* Box Phase 1: Lead recebido */}
-              <div className={`transition-all duration-300 rounded-2xl p-5 border text-xs flex flex-col gap-2 relative overflow-hidden ${
-                activeStep >= 0 
-                  ? isDarkMode 
-                    ? "bg-[#100E17] border-brand-purple/20" 
-                    : "bg-[#FAF8FF] border-brand-purple/20"
-                  : "opacity-20 border-transparent bg-transparent"
-              }`}>
-                {/* Channel visual */}
-                <div className="flex items-center justify-between text-[9px] font-mono text-[#71717A]">
-                  <div className="flex items-center gap-2">
-                    <span className={`font-sans font-medium ${isDarkMode ? "text-[#A1A1AA]" : "text-slate-600"}`}>WhatsApp Comercial</span>
-                  </div>
-                  <span>14:32</span>
-                </div>
-
-                <div className="flex items-start gap-3 mt-1.5">
-                  <div className="w-7 h-7 rounded-full bg-brand-purple/20 flex items-center justify-center text-[10px] font-bold text-[#D8B4FE] border border-brand-purple/30">
-                    MC
-                  </div>
-                  <div className={`flex-1 p-3 rounded-xl border ${
-                    isDarkMode ? "border-white/[0.04] bg-[#040406]/60" : "border-black/[0.05] bg-[#FFFFFF]"
-                  }`}>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className={`font-semibold ${isDarkMode ? "text-white" : "text-slate-900"}`}>Mariana Costa</span>
-                      <span className="text-[8px] text-[#71717A] font-mono">Lead</span>
-                    </div>
-                    <p className={`italic text-[11px] ${isDarkMode ? "text-[#E4E4E7]" : "text-slate-700"}`}>
-                      “Olá, queria saber valores e disponibilidade para essa semana.”
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Box Phase 2 & 3: Dados & Inteligência Artificial de Qualificação */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                {/* Data Extraction */}
-                <div className={`transition-all duration-300 rounded-2xl p-4 border text-xs flex flex-col gap-2 ${
-                  activeStep >= 1 
-                    ? isDarkMode 
-                      ? "bg-[#0A0A0F] border-white/[0.05]" 
-                      : "bg-[#F8F9FA] border-black/[0.05]"
-                    : "opacity-20"
-                }`}>
-                  <div className={`flex items-center justify-between text-[9px] font-mono border-b pb-1 ${
-                    isDarkMode ? "text-[#71717A] border-white/[0.04]" : "text-slate-500 border-black/[0.05]"
-                  }`}>
-                    <span>DADOS ESTRUTURADOS</span>
-                    <span className="text-emerald-500 font-semibold">HIGIENIZADO</span>
-                  </div>
-
-                  <div className={`space-y-1.5 font-mono text-[9px] ${isDarkMode ? "text-[#A1A1AA]" : "text-slate-600"}`}>
-                    <div className="flex justify-between">
-                      <span className={isDarkMode ? "text-[#71717A]" : "text-slate-400"}>Nome:</span>
-                      <span className={isDarkMode ? "text-white" : "text-slate-900"}>Mariana Costa</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className={isDarkMode ? "text-[#71717A]" : "text-slate-400"}>Canal:</span>
-                      <span className={isDarkMode ? "text-white" : "text-slate-900"}>WhatsApp</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className={isDarkMode ? "text-[#71717A]" : "text-slate-400"}>Origem:</span>
-                      <span className="text-brand-purple font-medium">Contato Direto</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* AI Classifier */}
-                <div className={`transition-all duration-300 rounded-2xl p-4 border text-xs flex flex-col gap-2 ${
-                  activeStep >= 2
-                    ? isDarkMode 
-                      ? "bg-[#0E0B16] border-brand-purple/30" 
-                      : "bg-[#FAF5FF] border-brand-purple/25"
-                    : "opacity-20"
-                }`}>
-                  <div className={`flex items-center justify-between text-[9px] font-mono border-b pb-1 ${
-                    isDarkMode ? "border-white/[0.04] text-[#D8B4FE]" : "border-black/[0.05] text-brand-purple"
-                  }`}>
-                    <span>IA QUALIFICA</span>
-                    <span className="text-brand-purple font-medium">ANÁLISE IA</span>
-                  </div>
-
-                  <div className="space-y-1.5 mt-1">
-                    <div className="flex flex-wrap gap-1">
-                      <span className="px-1.5 py-0.5 rounded bg-red-950/20 text-red-500 border border-red-900/40 font-mono text-[8.5px]">
-                        Qualidade: Lead quente
-                      </span>
-                      <span className="px-1.5 py-0.5 rounded bg-amber-950/20 text-amber-500 border border-amber-900/40 font-mono text-[8.5px]">
-                        Prioridade: Alta
-                      </span>
-                    </div>
-
-                    <p className={`text-[9px] leading-tight ${isDarkMode ? "text-[#A1A1AA]" : "text-slate-600"}`}>
-                      Intenção: Orçamento / Agendamento. Próxima ação: Responder com opções de horário.
-                    </p>
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Box Phase 4: CRM e Resposta Pronta de IA */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                {/* CRM pipeline synchronization */}
-                <div className={`transition-all duration-300 rounded-2xl p-4 border text-xs flex flex-col gap-2 ${
-                  activeStep >= 3
-                    ? isDarkMode 
-                      ? "bg-[#100E17] border-white/[0.05]" 
-                      : "bg-[#F8FAF9] border-black/[0.05]"
-                    : "opacity-20"
-                }`}>
-                  <div className={`flex items-center justify-between text-[9px] font-mono border-b pb-1 ${
-                    isDarkMode ? "text-[#71717A] border-white/[0.04]" : "text-slate-500 border-black/[0.05]"
-                  }`}>
-                    <span>CRM ATUALIZADO</span>
-                    <span className="text-emerald-500 font-semibold">SINCRONIZADO</span>
-                  </div>
-
-                  <div className="flex flex-col gap-1.5">
-                    <div className="flex justify-between items-center text-[9.5px]">
-                      <span className={`font-semibold ${isDarkMode ? "text-white" : "text-slate-900"}`}>Mariana Costa</span>
-                      <span className="text-brand-purple font-mono font-medium">Novo Negócio</span>
-                    </div>
-                    <span className={`text-[8.5px] px-1.5 py-0.5 rounded border font-mono w-fit ${
-                      isDarkMode ? "bg-[#040406] text-[#6DF0C2] border-white/[0.04]" : "bg-emerald-50 text-emerald-700 border-emerald-200"
-                    }`}>
-                      Funil de Vendas atualizado
-                    </span>
-                  </div>
-                </div>
-
-                {/* Intelligent reply formulation auto draft */}
-                <div className={`transition-all duration-300 rounded-2xl p-4 border text-xs flex flex-col gap-2 relative ${
-                  activeStep >= 4
-                    ? isDarkMode 
-                      ? "bg-[#0B0B11] border-brand-purple/20" 
-                      : "bg-[#FAF9FF] border-brand-purple/15"
-                    : "opacity-20"
-                }`}>
-                  <div className={`flex items-center justify-between text-[9px] font-mono border-b pb-1 ${
-                    isDarkMode ? "border-white/[0.04]" : "border-black/[0.05]"
-                  }`}>
-                    <span className="text-brand-purple">RESPOSTA ENVIADA</span>
-                    <span className="text-[#71717A]">AUTOMÁTICO</span>
-                  </div>
-
-                  <div className={`p-2 rounded text-[9px] font-sans border min-h-[46px] ${
-                    isDarkMode 
-                      ? "bg-[#040406]/60 text-zinc-300 border-white/[0.03]" 
-                      : "bg-white text-slate-700 border-black/[0.05]"
-                  }`}>
-                    {activeStep >= 4 ? (
-                      <p className="leading-relaxed">
-                        {typingText}
-                      </p>
-                    ) : (
-                      <span className="text-[#71717A] italic">Aguardando gatilho...</span>
-                    )}
-                  </div>
-                </div>
-
-              </div>
-
-              {/* Box Phase 5: Handoff para o humano, Alertas do time comercial */}
-              <div className={`transition-all duration-300 rounded-2xl p-4 border text-xs flex items-center justify-between ${
-                activeStep >= 5
-                  ? "bg-brand-purple/10 border-brand-purple/35 text-white" 
-                  : "opacity-20"
-              }`}>
-                <div className="flex items-center gap-3">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${
-                    activeStep >= 5 ? "bg-brand-purple text-white animate-pulse" : "bg-white/[0.01]"
-                  }`}>
-                    <Bell className="w-3.5 h-3.5 text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold text-xs text-white">
-                      Time acionado
-                    </h4>
-                    <p className="text-[10px] text-[#A1A1AA] max-w-xl mt-0.5">
-                      Lead quente recebido pelo WhatsApp. Priorizar contato e registrar interesse em orçamento/agendamento.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-
+              );
+            })}
           </div>
 
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={startDemo}
+              disabled={isAnimating}
+              className="flex min-h-11 flex-1 items-center justify-center gap-2 rounded-2xl bg-brand-purple px-6 py-3 text-xs font-bold text-white shadow-[0_0_24px_rgba(124,58,237,0.18)] transition-all hover:bg-brand-bright active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-55 lg:flex-none"
+            >
+              <Play className="h-3.5 w-3.5" fill="currentColor" />
+              {isAnimating ? "Simulando..." : "Iniciar simulação"}
+            </button>
+
+            <button
+              type="button"
+              onClick={resetDemo}
+              className={`min-h-11 rounded-2xl border px-3.5 transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-purple/60 ${
+                isDarkMode
+                  ? "border-white/10 bg-white/[0.03] text-[#A1A1AA] hover:bg-white/[0.07] hover:text-white"
+                  : "border-black/10 bg-slate-100 text-slate-600 hover:bg-slate-200"
+              }`}
+              aria-label="Reiniciar simulação"
+              title="Reiniciar"
+            >
+              <RotateCcw className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
+        <div
+          className={`mb-8 overflow-x-auto rounded-2xl border p-4 ${
+            isDarkMode ? "border-white/[0.05] bg-[#08080C]/75" : "border-black/[0.05] bg-white"
+          }`}
+        >
+          <div className="flex min-w-[720px] items-center">
+            {FLOW_STEPS.map((label, index) => {
+              const stepNumber = index + 1;
+              const isCurrent = step === stepNumber;
+              const isDone = step > stepNumber;
+              const isActive = step >= stepNumber;
+
+              return (
+                <React.Fragment key={label}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      clearAllTimers();
+                      setStep(stepNumber);
+                      setAiRevealed(stepNumber > 3);
+                      setIsAnimating(false);
+                    }}
+                    className="flex items-center gap-2 rounded-full focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-purple/60"
+                  >
+                    <span
+                      className={`flex h-7 w-7 items-center justify-center rounded-full border text-[10px] font-bold transition-all ${
+                        isCurrent
+                          ? "border-brand-soft bg-brand-purple text-white shadow-[0_0_18px_rgba(124,58,237,0.28)]"
+                          : isDone
+                            ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-300"
+                            : isActive
+                              ? "border-brand-purple/40 bg-brand-purple/10 text-brand-soft"
+                              : isDarkMode
+                                ? "border-white/[0.06] bg-[#040406] text-[#71717A]"
+                                : "border-black/[0.06] bg-slate-100 text-slate-400"
+                      }`}
+                    >
+                      {isDone ? <CheckCircle2 className="h-3.5 w-3.5" /> : stepNumber}
+                    </span>
+                    <span
+                      className={`text-[10px] font-mono font-semibold uppercase tracking-wider ${
+                        isCurrent
+                          ? "text-brand-soft"
+                          : isActive
+                            ? isDarkMode ? "text-[#E4E4E7]" : "text-slate-700"
+                            : isDarkMode ? "text-[#71717A]" : "text-slate-400"
+                      }`}
+                    >
+                      {label}
+                    </span>
+                  </button>
+
+                  {index < FLOW_STEPS.length - 1 && (
+                    <div className={`mx-3 h-px flex-1 overflow-hidden ${isDarkMode ? "bg-white/[0.06]" : "bg-black/[0.06]"}`}>
+                      <div
+                        className={`h-full bg-gradient-to-r from-brand-purple to-cyan-400 transition-all duration-500 ${
+                          step > stepNumber ? "w-full" : isCurrent ? "w-1/2" : "w-0"
+                        }`}
+                      />
+                    </div>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="relative mb-14 grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <WorkflowCard
+            step={1}
+            activeStep={step}
+            title="Captação de lead"
+            status="Recebido"
+            icon={<MessageSquare className="h-5 w-5" />}
+            isDarkMode={isDarkMode}
+          >
+            <div className={`rounded-2xl border p-4 ${isDarkMode ? "border-white/[0.05] bg-black/20" : "border-black/[0.05] bg-slate-50"}`}>
+              <div className="mb-3 flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-[#71717A]">
+                <span>{scenario.lead.canal}</span>
+                <span className="text-cyan-400">Agora</span>
+              </div>
+              <p className={`text-sm font-bold ${isDarkMode ? "text-white" : "text-slate-900"}`}>{scenario.lead.nome}</p>
+              <p className={`mt-2 text-xs italic leading-relaxed ${isDarkMode ? "text-[#A1A1AA]" : "text-slate-600"}`}>
+                "{scenario.lead.msg}"
+              </p>
+            </div>
+          </WorkflowCard>
+
+          <WorkflowCard
+            step={2}
+            activeStep={step}
+            title="Dados organizados"
+            status="Processado"
+            icon={<Database className="h-5 w-5" />}
+            isDarkMode={isDarkMode}
+          >
+            <div className="space-y-2 rounded-2xl border border-emerald-400/10 bg-emerald-400/[0.04] p-4 font-mono text-[11px] text-emerald-300">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-3 w-3" />
+                Lead normalizado
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="h-3 w-3" />
+                Origem identificada
+              </div>
+              <div className="flex items-center gap-2 text-cyan-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-cyan-300" />
+                Pronto para análise IA
+              </div>
+            </div>
+          </WorkflowCard>
+
+          <WorkflowCard
+            step={3}
+            activeStep={step}
+            title="Inteligência artificial"
+            status={aiRevealed ? "Classificado" : "Analisando"}
+            icon={<Brain className="h-5 w-5" />}
+            isDarkMode={isDarkMode}
+          >
+            <AnimatePresence mode="wait">
+              {!aiRevealed && step === 3 ? (
+                <motion.div
+                  key="ai-loading"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="space-y-3"
+                >
+                  <div className="h-8 w-full animate-shimmer rounded-xl bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.08),transparent)] bg-[length:200%_100%]" />
+                  <div className="h-16 w-full animate-shimmer rounded-xl bg-[linear-gradient(90deg,transparent,rgba(124,58,237,0.18),transparent)] bg-[length:200%_100%]" />
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="ai-content"
+                  initial={{ opacity: 0, scale: 0.96 }}
+                  animate={{ opacity: step >= 3 ? 1 : 0.42, scale: 1 }}
+                  className="space-y-3"
+                >
+                  <div className="grid grid-cols-2 gap-2">
+                    <SignalTile label="Score" value={scenario.ai.qualidade} tone="cyan" />
+                    <SignalTile label="Prioridade" value={scenario.ai.prioridade} tone="amber" />
+                  </div>
+                  <div className={`rounded-xl border p-3 ${isDarkMode ? "border-white/[0.05] bg-white/[0.035]" : "border-black/[0.05] bg-slate-50"}`}>
+                    <p className="mb-1 text-[9px] font-bold uppercase tracking-wider text-brand-soft">Intenção: {scenario.ai.intencao}</p>
+                    <p className={`text-[11px] leading-relaxed ${isDarkMode ? "text-[#A1A1AA]" : "text-slate-600"}`}>{scenario.ai.resumo}</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </WorkflowCard>
+
+          <WorkflowCard
+            step={4}
+            activeStep={step}
+            title="Pipeline de vendas"
+            status="Sincronizado"
+            icon={<TrendingUp className="h-5 w-5" />}
+            isDarkMode={isDarkMode}
+          >
+            <div className={`flex items-center gap-4 rounded-2xl border p-4 ${isDarkMode ? "border-white/[0.05] bg-[#06060A]" : "border-black/[0.05] bg-slate-50"}`}>
+              <div className="relative">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-emerald-400/30 text-emerald-300">
+                  <Database className="h-5 w-5" />
+                </div>
+                <div className="absolute -right-1 -top-1 rounded-full bg-emerald-400 p-0.5 text-[#030304]">
+                  <CheckCircle2 className="h-3 w-3" />
+                </div>
+              </div>
+              <div>
+                <p className={`text-xs font-bold ${isDarkMode ? "text-white" : "text-slate-900"}`}>Card de negócio</p>
+                <p className={`mt-1 text-[10px] ${isDarkMode ? "text-[#71717A]" : "text-slate-500"}`}>{scenario.ai.acao}</p>
+              </div>
+            </div>
+          </WorkflowCard>
+
+          <WorkflowCard
+            step={5}
+            activeStep={step}
+            title="Resposta inteligente"
+            status="Enviada"
+            icon={<Send className="h-5 w-5" />}
+            isDarkMode={isDarkMode}
+          >
+            <div className="rounded-2xl rounded-tl-sm border border-brand-purple/20 bg-brand-purple/10 p-4">
+              <p className={`min-h-[58px] text-xs leading-relaxed ${isDarkMode ? "text-[#E4E4E7]" : "text-slate-700"}`}>
+                <TypingText text={scenario.reply} start={step >= 5} />
+              </p>
+            </div>
+          </WorkflowCard>
+
+          <WorkflowCard
+            step={6}
+            activeStep={step}
+            title="Ação recomendada"
+            status="Time alertado"
+            icon={<Bell className="h-5 w-5" />}
+            isDarkMode={isDarkMode}
+          >
+            <div className="rounded-2xl border border-amber-400/20 bg-amber-400/[0.045] p-4">
+              <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-amber-300">Atenção comercial</p>
+              <p className={`text-xs leading-relaxed ${isDarkMode ? "text-[#D4D4D8]" : "text-slate-700"}`}>{scenario.internal}</p>
+            </div>
+          </WorkflowCard>
+        </div>
+
+        <div className="mb-10 grid grid-cols-1 gap-4 md:grid-cols-3">
+          <BenefitCard
+            icon={<Zap className="h-5 w-5 text-cyan-300" />}
+            title="Respostas mais rápidas"
+            description="Leads recebem uma primeira resposta organizada em poucos segundos, sem depender da disponibilidade imediata do time."
+            isDarkMode={isDarkMode}
+          />
+          <BenefitCard
+            icon={<Target className="h-5 w-5 text-brand-soft" />}
+            title="Contexto para o time"
+            description="O comercial recebe intenção, prioridade, origem e próxima ação sugerida antes de assumir a conversa."
+            isDarkMode={isDarkMode}
+          />
+          <BenefitCard
+            icon={<BarChart3 className="h-5 w-5 text-emerald-300" />}
+            title="Processo padronizado"
+            description="Cada canal segue o mesmo critério de qualificação, reduzindo ruído e perda de oportunidade."
+            isDarkMode={isDarkMode}
+          />
+        </div>
+
+        <div
+          className={`flex flex-col items-center justify-between gap-5 rounded-[28px] border p-6 text-center md:flex-row md:text-left ${
+            isDarkMode ? "border-white/[0.06] bg-[#08080C]" : "border-black/[0.05] bg-white shadow-sm"
+          }`}
+        >
+          <div>
+            <p className={`text-sm font-semibold ${isDarkMode ? "text-white" : "text-slate-900"}`}>
+              Esse fluxo pode ser adaptado aos seus canais, CRM e rotina comercial.
+            </p>
+            <p className={`mt-1 text-xs leading-relaxed ${isDarkMode ? "text-[#A1A1AA]" : "text-slate-600"}`}>
+              A demo mostra a lógica. A implementação real é desenhada em cima do processo da sua operação.
+            </p>
+          </div>
+
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <button
+              type="button"
+              onClick={handleOpenAnalysis}
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-brand-purple px-6 py-3 text-xs font-bold text-white transition-all hover:bg-brand-bright focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-purple/60"
+            >
+              Solicitar análise
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={handleScrollToProjects}
+              className={`inline-flex min-h-11 items-center justify-center rounded-full border px-6 py-3 text-xs font-bold transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-purple/60 ${
+                isDarkMode ? "border-white/10 bg-white/[0.03] text-[#E4E4E7] hover:bg-white/[0.07]" : "border-black/10 bg-slate-50 text-slate-700 hover:bg-slate-100"
+              }`}
+            >
+              Ver modelos
+            </button>
+          </div>
+        </div>
       </div>
     </section>
+  );
+}
+
+function SignalTile({ label, value, tone }: { label: string; value: string; tone: "cyan" | "amber" }) {
+  const classes = tone === "cyan"
+    ? "border-cyan-400/20 bg-cyan-400/10 text-cyan-300"
+    : "border-amber-400/20 bg-amber-400/10 text-amber-300";
+
+  return (
+    <div className={`rounded-xl border p-3 ${classes}`}>
+      <p className="mb-1 text-[9px] font-bold uppercase tracking-wider text-[#71717A]">{label}</p>
+      <p className="text-xs font-bold">{value}</p>
+    </div>
+  );
+}
+
+function WorkflowCard({
+  children,
+  step,
+  activeStep,
+  title,
+  status,
+  icon,
+  isDarkMode
+}: {
+  children: React.ReactNode;
+  step: number;
+  activeStep: number;
+  title: string;
+  status: string;
+  icon: React.ReactNode;
+  isDarkMode: boolean;
+}) {
+  const isCurrent = activeStep === step;
+  const isCompleted = activeStep > step;
+  const isPending = activeStep > 0 && activeStep < step;
+  const isInitial = activeStep === 0;
+
+  return (
+    <motion.div
+      initial={false}
+      animate={{
+        opacity: isPending ? 0.56 : 1,
+        scale: isCurrent ? 1.015 : 1,
+        borderColor: isCurrent
+          ? "rgba(192, 132, 252, 0.44)"
+          : isCompleted
+            ? "rgba(52, 211, 153, 0.22)"
+            : isDarkMode
+              ? "rgba(255, 255, 255, 0.08)"
+              : "rgba(15, 23, 42, 0.08)"
+      }}
+      className={`relative flex min-h-[248px] flex-col rounded-[28px] border p-5 backdrop-blur-sm transition-shadow duration-500 ${
+        isDarkMode ? "bg-white/[0.025]" : "bg-white"
+      } ${isCurrent ? "z-20 shadow-[0_0_42px_rgba(124,58,237,0.12)]" : "z-10"} ${
+        isInitial && step === 1 ? "ring-1 ring-brand-purple/30" : ""
+      }`}
+    >
+      <div className="mb-5 flex items-center justify-between gap-4">
+        <div
+          className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-colors ${
+            isCurrent
+              ? "bg-brand-purple text-white shadow-[0_0_22px_rgba(124,58,237,0.22)]"
+              : isCompleted
+                ? "bg-emerald-400/10 text-emerald-300"
+                : isDarkMode
+                  ? "bg-white/[0.04] text-[#A1A1AA]"
+                  : "bg-slate-100 text-slate-500"
+          }`}
+        >
+          {icon}
+        </div>
+
+        <div className="text-right">
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-widest text-[#71717A]">Etapa 0{step}</p>
+          <div
+            className={`flex items-center justify-end gap-1.5 text-[10px] font-black uppercase tracking-wider ${
+              isCompleted ? "text-emerald-300" : isCurrent ? "text-brand-soft" : "text-[#71717A]"
+            }`}
+          >
+            {isCompleted && <CheckCircle2 className="h-3 w-3" />}
+            {status}
+          </div>
+        </div>
+      </div>
+
+      <h4 className={`mb-4 font-display text-lg font-bold leading-tight ${isDarkMode ? "text-white" : "text-slate-900"}`}>
+        {title}
+      </h4>
+
+      <div className="flex-grow">{children}</div>
+    </motion.div>
+  );
+}
+
+function BenefitCard({
+  icon,
+  title,
+  description,
+  isDarkMode
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  isDarkMode: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-[24px] border p-6 transition-all ${
+        isDarkMode
+          ? "border-white/[0.05] bg-white/[0.02] hover:border-white/10 hover:bg-white/[0.04]"
+          : "border-black/[0.05] bg-white hover:border-black/10"
+      }`}
+    >
+      <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-2xl ${isDarkMode ? "bg-white/[0.04]" : "bg-slate-100"}`}>
+        {icon}
+      </div>
+      <h4 className={`mb-2 text-base font-bold tracking-tight ${isDarkMode ? "text-white" : "text-slate-900"}`}>{title}</h4>
+      <p className={`text-xs leading-relaxed ${isDarkMode ? "text-[#A1A1AA]" : "text-slate-600"}`}>{description}</p>
+    </div>
+  );
+}
+
+function TypingText({ text, start }: { text: string; start: boolean }) {
+  const [content, setContent] = useState("");
+
+  useEffect(() => {
+    if (!start) {
+      setContent("");
+      return;
+    }
+
+    let index = 0;
+    const interval = setInterval(() => {
+      setContent(text.slice(0, index));
+      index += 1;
+      if (index > text.length) {
+        clearInterval(interval);
+      }
+    }, 18);
+
+    return () => clearInterval(interval);
+  }, [start, text]);
+
+  return (
+    <span className="relative">
+      {content}
+      {start && content.length < text.length && (
+        <span className="ml-1 inline-block h-4 w-1.5 animate-pulse bg-brand-soft align-middle" />
+      )}
+    </span>
   );
 }

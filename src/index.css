@@ -48,6 +48,19 @@
   animation: pulseGlowFaster 5s ease-in-out infinite;
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
 .radial-glow-hero {
   background: radial-gradient(circle 500px at 50% 50%, rgba(124, 58, 237, 0.22) 0%, rgba(168, 85, 247, 0.05) 50%, rgba(0, 0, 0, 0) 100%);
 }

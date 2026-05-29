@@ -84,6 +84,7 @@ export default function App() {
 
         {/* 6. Interactive Automation Simulated Demo Section */}
         <AutomationDemoSection 
+          onOpenContactModal={() => handleOpenModal()} 
           isDarkMode={isDarkMode}
         />
 

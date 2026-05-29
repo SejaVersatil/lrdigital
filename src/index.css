@@ -1,0 +1,111 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Manrope", "Inter", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  
+  --color-brand-black: #030305;
+  --color-brand-dark: #050509;
+  --color-brand-deep: #090512;
+  --color-brand-surface: #08080C;
+  --color-brand-card: #0D0B14;
+  --color-brand-card-light: #151221;
+  --color-brand-purple: #7C3AED;
+  --color-brand-bright: #A855F7;
+  --color-brand-soft: #C084FC;
+}
+
+/* Animations and decorative custom styles */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.25;
+    transform: scale(1) translate(-50%, -50%);
+  }
+  50% {
+    opacity: 0.45;
+    transform: scale(1.1) translate(-48%, -52%);
+  }
+}
+
+.pulse-glow {
+  animation: pulseGlow 8s ease-in-out infinite;
+}
+
+@keyframes pulseGlowFaster {
+  0%, 100% {
+    opacity: 0.15;
+    transform: scale(0.95) translate(-50%, -50%);
+  }
+  50% {
+    opacity: 0.3;
+    transform: scale(1.05) translate(-52%, -48%);
+  }
+}
+
+.pulse-glow-faster {
+  animation: pulseGlowFaster 5s ease-in-out infinite;
+}
+
+.radial-glow-hero {
+  background: radial-gradient(circle 500px at 50% 50%, rgba(124, 58, 237, 0.22) 0%, rgba(168, 85, 247, 0.05) 50%, rgba(0, 0, 0, 0) 100%);
+}
+
+.noise-overlay {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+.noise-overlay-light {
+  background-image: radial-gradient(rgba(124, 58, 237, 0.04) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+
+/* Glassmorphism glass card borders & subtle high contrast elements */
+.glass-panel {
+  background: rgba(13, 11, 20, 0.7);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(124, 58, 237, 0.08);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-panel-hover:hover {
+  border-color: rgba(168, 85, 247, 0.25);
+  background: rgba(17, 16, 26, 0.8);
+  box-shadow: 0 10px 30px -10px rgba(124, 58, 237, 0.15);
+  transform: translateY(-2px);
+}
+
+.glass-panel-hover-light {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.glass-panel-hover-light:hover {
+  border-color: rgba(124, 58, 237, 0.25);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 10px 30px -10px rgba(124, 58, 237, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(124, 58, 237, 0.15);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #7C3AED;
+}

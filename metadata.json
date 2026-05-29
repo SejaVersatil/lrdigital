@@ -1,0 +1,6 @@
+{
+  "name": "LR Digital - Automação e IA Comercial",
+  "description": "Consultoria e implementação premium de IA e automação para processos comerciais de empresas.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

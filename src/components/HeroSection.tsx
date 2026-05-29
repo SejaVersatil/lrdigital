@@ -8,6 +8,7 @@ import { motion } from "motion/react";
 import { trustPills } from "../data/landingData";
 
 const roboticHandHero = new URL("../assets/images/robotic_hand_hero_1780073012840.png", import.meta.url).href;
+const roboticHandHeroLight = new URL("../assets/images/robotic_hand_hero_light.png", import.meta.url).href;
 
 interface HeroSectionProps {
   onOpenContactModal: () => void;
@@ -118,12 +119,10 @@ export default function HeroSection({ onOpenContactModal, onScrollToDemo, isDark
       <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden select-none">
         {/* Refined glow layers near the hand area specifically for Light Mode */}
         {!isDarkMode && (
-          <div className="absolute right-[-10%] bottom-[-10%] w-[550px] md:w-[800px] h-[550px] md:h-[800px] rounded-full pointer-events-none z-0 opacity-90">
-            {/* Lavender/Violet glow layer behind the hand with higher presence */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_60%_55%,rgba(168,85,247,0.16)_0%,transparent_65%)] blur-[90px]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_70%,rgba(124,58,237,0.10)_0%,transparent_70%)] blur-[80px]" />
-            {/* Ciano subtle glow layer */}
-            <div className="absolute inset-12 bg-[radial-gradient(circle_at_50%_60%,rgba(56,189,248,0.12)_0%,transparent_60%)] blur-[100px]" />
+          <div className="absolute right-[-14%] bottom-[-16%] h-[620px] w-[720px] rounded-full pointer-events-none z-0 opacity-100 md:h-[840px] md:w-[980px] xl:h-[980px] xl:w-[1180px]">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_58%_62%,rgba(124,58,237,0.13)_0%,rgba(124,58,237,0.06)_34%,transparent_66%)] blur-[78px]" />
+            <div className="absolute inset-10 bg-[radial-gradient(circle_at_52%_64%,rgba(6,182,212,0.16)_0%,rgba(45,212,191,0.07)_38%,transparent_68%)] blur-[86px]" />
+            <div className="absolute bottom-20 right-10 h-28 w-[72%] rounded-full bg-slate-400/20 blur-[46px]" />
           </div>
         )}
 
@@ -134,18 +133,18 @@ export default function HeroSection({ onOpenContactModal, onScrollToDemo, isDark
           className={
             isDarkMode 
               ? "absolute right-[-15%] sm:right-[-8%] md:right-[-5%] lg:right-[-6%] xl:right-[-8%] bottom-[-10%] sm:bottom-[-4%] md:bottom-[-2%] lg:bottom-[-4%] xl:bottom-[-6%] w-[95vw] sm:w-[72vw] md:w-[68vw] lg:w-[64vw] xl:w-[58vw] max-w-[750px] md:max-w-[1050px] lg:max-w-[1200px] xl:max-w-[1350px]"
-              : "absolute right-[-6%] sm:right-[-5%] md:right-[-4%] lg:right-[-5%] xl:right-[-6%] bottom-[-2%] sm:bottom-[-1%] md:bottom-[0%] lg:bottom-[-2%] xl:bottom-[-3%] w-[88vw] sm:w-[62vw] md:w-[56vw] lg:w-[50vw] xl:w-[46vw] max-w-[700px] sm:max-w-[850px] md:max-w-[950px] lg:max-w-[1050px] xl:max-w-[1100px]"
+              : "absolute right-[-18%] sm:right-[-10%] md:right-[-7%] lg:right-[-7%] xl:right-[-8%] bottom-[-18%] sm:bottom-[-12%] md:bottom-[-10%] lg:bottom-[-12%] xl:bottom-[-14%] w-[108vw] sm:w-[76vw] md:w-[70vw] lg:w-[65vw] xl:w-[59vw] max-w-[780px] md:max-w-[1080px] lg:max-w-[1220px] xl:max-w-[1360px]"
           }
         >
           <img
-            src={roboticHandHero}
+            src={isDarkMode ? roboticHandHero : roboticHandHeroLight}
             alt=""
             aria-hidden="true"
             referrerPolicy="no-referrer"
             className={`w-full h-auto object-contain transition-all duration-700 ${
               isDarkMode 
                 ? "opacity-[0.70] md:opacity-[0.82]" 
-                : "opacity-[0.44] md:opacity-[0.52]"
+                : "opacity-[0.86] md:opacity-[0.96]"
             }`}
             style={
               isDarkMode
@@ -155,10 +154,9 @@ export default function HeroSection({ onOpenContactModal, onScrollToDemo, isDark
                     maskImage: "radial-gradient(circle at 80% 80%, black 20%, transparent 75%)",
                   }
                 : {
-                    filter: "invert(1) hue-rotate(185deg) brightness(1.10) contrast(1.22) saturate(0.72)",
-                    mixBlendMode: "multiply",
-                    WebkitMaskImage: "radial-gradient(circle at 68% 62%, black 22%, transparent 72%)",
-                    maskImage: "radial-gradient(circle at 68% 62%, black 22%, transparent 72%)",
+                    filter:
+                      "brightness(0.96) contrast(1.18) saturate(1.08) drop-shadow(0 28px 36px rgba(15,23,42,0.22)) drop-shadow(0 0 42px rgba(34,211,238,0.18))",
+                    mixBlendMode: "normal",
                   }
             }
           />

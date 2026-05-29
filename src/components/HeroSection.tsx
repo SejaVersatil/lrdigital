@@ -7,6 +7,8 @@ import { ArrowUpRight, ArrowDownCircle } from "lucide-react";
 import { motion } from "motion/react";
 import { trustPills } from "../data/landingData";
 
+const roboticHandHero = new URL("../assets/images/robotic_hand_hero_1780073012840.png", import.meta.url).href;
+
 interface HeroSectionProps {
   onOpenContactModal: () => void;
   onScrollToDemo: () => void;
@@ -136,7 +138,7 @@ export default function HeroSection({ onOpenContactModal, onScrollToDemo, isDark
           }
         >
           <img
-            src="/src/assets/images/robotic_hand_hero_1780073012840.png"
+            src={roboticHandHero}
             alt=""
             aria-hidden="true"
             referrerPolicy="no-referrer"
